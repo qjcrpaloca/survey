@@ -11,8 +11,19 @@ c.execute('''CREATE TABLE IF NOT EXISTS completions (id INTEGER PRIMARY KEY AUTO
 conn.commit()
 
 # Sidebar navigation
+# Sidebar navigation
 st.sidebar.title("Survey App")
-page = st.sidebar.selectbox("Navigation", ["Home", "Admin Panel", "User Dashboard"])
+
+# Admin authentication check
+if "admin_logged_in" not in st.session_state:
+    st.session_state["admin_logged_in"] = False
+
+if st.session_state["admin_logged_in"]:
+    navigation_options = ["Home", "Admin Panel", "User Dashboard"]
+else:
+    navigation_options = ["Home", "User Dashboard"]
+
+page = st.sidebar.selectbox("Navigation", navigation_options)
 
 if page == "Home":
     st.title("Welcome to the Survey App")
