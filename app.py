@@ -21,29 +21,52 @@ if page == "Home":
 elif page == "Admin Panel":
     st.title("Admin Panel")
     
-    # Add a new survey
-    st.header("Add a New Survey")
-    with st.form("add_survey_form"):
-        title = st.text_input("Survey Title")
-        link = st.text_input("Survey Link")
-        points = st.number_input("Points", min_value=1, step=1)
-        submit = st.form_submit_button("Add Survey")
-        
-        if submit:
-            c.execute("INSERT INTO surveys (title, link, points) VALUES (?, ?, ?)", (title, link, points))
-            conn.commit()
-            st.success("Survey added successfully!")
+    # Admin authentication
+    admin_password = "your_secure_password"  # Replace with your own password
+    admin_logged_in = False
 
-    # View surveys
-    st.header("Existing Surveys")
-    surveys = c.execute("SELECT * FROM surveys").fetchall()
-    for survey in surveys:
-        st.write(f"**{survey[1]}** ({survey[3]} points)")
-        st.write(f"[Go to survey]({survey[2]})")
-        if st.button(f"Delete {survey[1]}", key=survey[0]):
-            c.execute("DELETE FROM surveys WHERE id = ?", (survey[0],))
-            conn.commit()
+    if "admin_logged_in" not in st.session_state:
+        st.session_state["admin_logged_in"] = False
+
+    if not st.session_state["admin_logged_in"]:
+        st.header("Admin Login")
+        password = st.text_input("Enter Admin Password", type="password")
+        if st.button("Login"):
+            if password == admin_password:
+                st.session_state["admin_logged_in"] = True
+                st.success("Login successful!")
+            else:
+                st.error("Incorrect password.")
+    else:
+        # Add a new survey
+        st.header("Add a New Survey")
+        with st.form("add_survey_form"):
+            title = st.text_input("Survey Title")
+            link = st.text_input("Survey Link")
+            points = st.number_input("Points", min_value=1, step=1)
+            submit = st.form_submit_button("Add Survey")
+            
+            if submit:
+                c.execute("INSERT INTO surveys (title, link, points) VALUES (?, ?, ?)", (title, link, points))
+                conn.commit()
+                st.success("Survey added successfully!")
+
+        # View surveys
+        st.header("Existing Surveys")
+        surveys = c.execute("SELECT * FROM surveys").fetchall()
+        for survey in surveys:
+            st.write(f"**{survey[1]}** ({survey[3]} points)")
+            st.write(f"[Go to survey]({survey[2]})")
+            if st.button(f"Delete {survey[1]}", key=survey[0]):
+                c.execute("DELETE FROM surveys WHERE id = ?", (survey[0],))
+                conn.commit()
+                st.experimental_rerun()
+
+        # Logout option
+        if st.button("Logout"):
+            st.session_state["admin_logged_in"] = False
             st.experimental_rerun()
+
 
 elif page == "User Dashboard":
     st.title("User Dashboard")
